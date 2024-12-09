@@ -16,13 +16,13 @@ class XMReader:
             name = f.read(20).decode('ascii').strip()
             null_terminator = f.read(1)
             tracker_name = f.read(20).decode('ascii').strip()
-            version = f.read(2)
-            header_size = f.read(2)
+            version = "v" + '.'.join(map(str, list(f.read(2))[::-1]))
+            header_size = int.from_bytes(f.read(4).strip(b'\x00'))
             song_length = f.read(2)
             song_restart = f.read(2)
-            channel_number = int.from_bytes(f.read(2))
-            pattern_number = int.from_bytes(f.read(2))
-            instrument_number = int.from_bytes(f.read(2))
+            channel_number = int.from_bytes(f.read(2).strip(b'\x00'))
+            pattern_number = int.from_bytes(f.read(2).strip(b'\x00'))
+            instrument_number = int.from_bytes(f.read(2).strip(b'\x00'))
             self.header.update({
                 'id_text': id_text,
                 'name': name,
