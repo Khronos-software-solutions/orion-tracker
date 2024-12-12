@@ -14,27 +14,34 @@ class XMReader:
         with open(self.file_path, 'rb') as f:
             self.read_header(f)
             self.read_patterns(f)
+            self.read_instruments(f)
 
     def read_header(self, f: BufferedReader):
         id_text = f.read(17).decode('ascii') # Should be "Extended Module: "
-        name = f.read(20).decode('ascii').strip()
-        null_terminator = f.read(1)
-        tracker_name = f.read(20).decode('ascii').strip()
-        version = "v" + '.'.join(map(str, list(f.read(2))[::-1]))
+        module_name = f.read(20).decode('ascii').strip()
+        null_terminator = f.read(1) # Always \x1a. Not used anywhere else.
+        tracker_name = f.read(20).decode('ascii').strip() # Name of the tracker used to create the module
+                                                          # .XM files were introduced with FastTracker v2.00
+
+        version = "v" + '.'.join(map(str, list(f.read(2))[::-1])) # Almost always v1.4
+
         header_size = unpack('<I',f.read(4))[0]
         song_length = unpack('<H', f.read(2))[0]
         song_restart = unpack('<H', f.read(2))[0]
+
         channel_number = unpack('<H', f.read(2))[0]
         pattern_number = unpack('<H', f.read(2))[0]
         instrument_number = unpack('<H', f.read(2))[0]
+
         flags = f.read(2)
         default_tempo = unpack('<H', f.read(2))[0]
         default_bpm = unpack('<H', f.read(2))[0]
         pattern_table = f.read(header_size - 20).strip(b'\x00')
         self.pattern_order = [int.from_bytes(pattern_table[i:i+1]) for i in range(0, len(pattern_table))]
+
         self.header.update({
             'id_text': id_text,
-            'name': name,
+            'name': module_name,
             'null_terminator': null_terminator,
             'tracker_name': tracker_name,
             'version': version,
@@ -48,7 +55,6 @@ class XMReader:
             'tempo': default_tempo,
             'bpm': default_bpm
         })
-        print(self.header)
     
     def read_patterns(self, f: BufferedReader):
         for i in range(self.header['pattern_number']):
@@ -65,14 +71,15 @@ class XMReader:
             })
     
     def read_instruments(self, f: BufferedReader):
-        for _ in range(self.header['instrument_number']):
+        for i in range(self.header['instrument_number']):
             instr_size = unpack('<I', f.read(4))[0]
-            instr_name = unpack('<22s', f.read(22))[0].decode('ascii')
+            instr_name = unpack('<22s', f.read(22))[0].decode('CP437')
             instr_type = f.read(1) # Almost always \x00, doesn't mean anything
             num_samples = unpack('<H', f.read(2))[0]
             samples: list[dict[str, Any]] = []
             sample_header: dict[str, Any] = {}
-            if num_samples > 0:
+
+            if num_samples != 0:
                 sample_header_size = unpack('<I', f.read(4))[0]
                 keymap = f.read(96)
                 volume_envelope = f.read(48)
@@ -94,6 +101,8 @@ class XMReader:
                 volume_fadeout = unpack('<H', f.read(2))[0]
                 
                 sample_header.update({
+                    'index': i,
+                    'header_size': sample_header_size,
                     'keymap': keymap,
                     'volume_envelope': volume_envelope,
                     'panning_envelope': panning_envelope,
@@ -113,8 +122,9 @@ class XMReader:
                     'vibrato_rate' : vibrato_rate,
                     'volume_fadeout' : volume_fadeout
                 })
-                
-                for i in range(num_samples):
+
+                for j in range(num_samples):
+                    f.read(22)
                     sample_length = unpack('<I', f.read(4))[0]
                     sample_loop_start = unpack('<I', f.read(4))[0]
                     sample_loop_length = unpack('<I', f.read(4))[0] # If 0, sample does not loop
@@ -125,14 +135,13 @@ class XMReader:
                     panning = unpack('<B', f.read(1))[0]
                     rel_note_num = unpack('<b', f.read(1))[0]
                     ADPCM: bool = f.read(1) == b'\xad'
-                    
-                    sample_name = unpack('<22s', f.read(22))[0].decode()
-                    
-                    
-                    
-                    samples.append({
-                        'index': i,
+                    name = f.read(22)
+                    sample_name = unpack('<22s', name)[0].decode('CP437')
+                    sample_data = f.read(sample_length)
+                    sample: dict[str, Any] = {
+                        'index': j,
                         'name': sample_name,
+                        'length': sample_length,
                         'loop_start': sample_loop_start,
                         'loop_length': sample_loop_length,
                         'volume': volume,
@@ -140,18 +149,20 @@ class XMReader:
                         'type': sample_type,
                         'panning': panning,
                         'relative_note': rel_note_num,
-                        'use_ADPCM?': ADPCM
-                    })
+                        'use_ADPCM?': ADPCM,
+                        'data': sample_data
+                    }
+
+                    samples.append(sample)
+            else:
+                f.read(instr_size - 29) # If there are no samples, and the instrument size is more than 29, the data is padded with zeroes.
+                                        # I have no idea why, but this fixes it.
 
             self.instruments.append({
                 'name': instr_name,
                 'type': instr_type,
                 'samples': samples
             })
-
-        
-            
-
 
 if __name__ == "__main__":
     xm = XMReader('./amb-nrg.xm')
