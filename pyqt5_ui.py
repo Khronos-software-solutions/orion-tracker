@@ -1,37 +1,41 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
+from extended_module import XMReader
+from module import Pattern
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QHBoxLayout, QGridLayout
 
-class OpenMPTTable(QMainWindow):
-    def __init__(self):
+class TableWidget(QWidget):
+    def __init__(self, data):
         super().__init__()
+        self.data = data
+        self.initUI()
 
-        self.setWindowTitle("OpenMPT-like Table")
-        self.setGeometry(100, 100, 800, 600)
+    def initUI(self):
+        # Create a grid layout
+        grid = QGridLayout()
 
-        # Create a central widget and set a layout
-        central_widget = QWidget()
-        layout = QVBoxLayout(central_widget)
-        self.setCentralWidget(central_widget)
+        # Define the table data
 
-        # Create a table widget
-        self.table_widget = QTableWidget()
-        self.table_widget.setRowCount(16)  # Number of tracks
-        self.table_widget.setColumnCount(64)  # Number of beats/steps
+        # Add the data to the grid layout
+        for row_idx, row in enumerate(self.data):
+            for col_idx, item in enumerate(row):
+                label = QLabel(str(item))
+                label.setStyleSheet("border: 1px solid black; padding: 5px;")
+                grid.addWidget(label, row_idx, col_idx)
 
-        # Set the table headers
-        self.table_widget.setHorizontalHeaderLabels([f"{i}" for i in range(64)])
-        self.table_widget.setVerticalHeaderLabels([f"Channel {i+1}" for i in range(16)])
+        # Set the grid layout to the main layout
+        self.setLayout(grid)
 
-        # Populate the table with empty items
-        for row in range(16):
-            for col in range(64):
-                self.table_widget.setItem(row, col, QTableWidgetItem(""))
+        self.setWindowTitle('Table using QLabel')
+        self.show()
 
-        # Add the table widget to the layout
-        layout.addWidget(self.table_widget)
+if __name__ == '__main__':
+    mod = XMReader('./amblight.xm')
+    mod.load_file()
+    pattern = Pattern(mod.header['channel_number'], mod.patterns[0]['row_number'])
+    patterns = []
+    for i in pattern.pattern:
+        patterns.append(pattern.pattern[i])
 
-if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = OpenMPTTable()
-    window.show()
+    ex = TableWidget(patterns)
     sys.exit(app.exec_())

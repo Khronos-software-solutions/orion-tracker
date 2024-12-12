@@ -3,6 +3,56 @@ from io import BytesIO
 class Sample:
     def __init__(self, data: bytes | None = None, length: int | None = None, name: str | None = None, ADPCM: bool = False):
         pass
+    
+class Volume:
+    volume_type: str
+    volume: int
+    def __init__(self, data: int):
+
+        high_ord, low_ord = data >> 4, data & 0x0F
+
+        if 0x1 <= high_ord < 0x5:
+            self.volume_type = 'V'
+            self.volume = data - 0x10
+        elif 0x6 <= high_ord < 0x7:
+            self.volume_type = 'D'
+            self.volume = low_ord
+        elif 0x7 <= high_ord < 0x8:
+            self.volume_type = 'C'
+            self.volume = low_ord
+        elif 0x8 <= high_ord < 0x9:
+            self.volume_type = 'B'
+            self.volume = low_ord
+        elif 0x9 <= high_ord < 0xA:
+            self.volume_type = 'A'
+            self.volume = low_ord
+        elif 0xA <= high_ord < 0xB:
+            self.volume_type = 'U'
+            self.volume = low_ord
+        elif 0xB <= high_ord < 0xC:
+            self.volume_type = 'H'
+            self.volume = low_ord
+        elif 0xC <= high_ord < 0xD:
+            self.volume_type = 'P'
+            self.volume = low_ord
+        elif 0xD <= high_ord < 0xE:
+            self.volume_type = 'L'
+            self.volume = low_ord
+        elif 0xE <= high_ord < 0xF:
+            self.volume_type = 'R'
+            self.volume = low_ord
+        elif 0xF <= high_ord:
+            self.volume_type = 'G'
+            self.volume = low_ord
+    
+    def __str__(self):
+        return "{}{:02d}".format(self.volume_type.lower(), self.volume)
+    
+class Effect:
+    effect_type: str
+    parameter: int
+    def __init__(self, effect, parameter):
+        pass
 
 class Note:
     tone: int | None # 0..97
@@ -37,25 +87,29 @@ class Note:
 
 
     def __str__(self):
-        l: list[str] = []
-        for i in [self.instrument, self.volume, self.effect, self.effect_parameter]:
-            if i:
-                l.append(bytes([i]).hex())
-            else:
-                l.append('-')
+        if self.instrument:
+            i = "{:02d}".format(self.instrument)
+        else:
+            i = '--'
+        if self.volume:
+            v = Volume(self.volume)
+        else:
+            v = ' --'
+        if self.effect:
+            e = hex(self.effect)
+        else:
+            e = '---'
+        
 
-        return self.to_readable() + " " +' '.join(l)
+        return " {} {}{} {} ".format(self.to_readable(), i, v, e)
 
     def to_readable(self):
-        if not self.tone:
-            raise ValueError('tone not set.')
-
-        notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
-
-        octave = (self.tone - 1) // 12 + 1
-        note_index = (self.tone - 1) % 12
-
-        return f'{notes[note_index].ljust(2, '-')}{octave}'
+        if self.tone:
+            notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+            octave = (self.tone - 1) // 12 + 1
+            note_index = (self.tone - 1) % 12
+            return f'{notes[note_index].ljust(2, '-')}{octave}'
+        return '---'
     
 
 class Pattern:
@@ -71,9 +125,7 @@ class Pattern:
             self.pattern.update({
                 f'ch_{channel+1}': [Note() for _ in range(rows)]
             })
-        print(self.pattern)
-        pass
-    
+
     def from_data(self, data: bytes):
         data_notes = [data[i:i+5] for i in range(0, len(data), 5)]
         data_rows: list[list[bytes]] = []
@@ -81,8 +133,7 @@ class Pattern:
             data_rows.append(data_notes[i:i + self.rows])
 
     def from_byte_pattern(self, pattern: bytes):
-        notes: list[Note] = []
-
+        print(range(self.channels))
         f = BytesIO(pattern)
         for row in range(self.rows):
             for note in range(self.channels):
@@ -100,4 +151,7 @@ class Pattern:
                 else:
                     t, i, v, e, ep = [int.from_bytes(f.read(1)) for _ in range(5)]
 
-                notes.append(Note(t, i, v, e, ep))
+                self.pattern[f'ch_{note+1}'][row] = Note(t, i, v, e, ep)
+
+                print(self.pattern[f'ch_{note+1}'][row], end='|')
+            print()
