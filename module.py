@@ -1,3 +1,5 @@
+from io import BytesIO
+
 class Sample:
     def __init__(self, data: bytes | None = None, length: int | None = None, name: str | None = None, ADPCM: bool = False):
         pass
@@ -33,17 +35,18 @@ class Note:
             self.effect_parameter\
             = [int.from_bytes(data[i:i+1]) for i in range(5)]
 
+
     def __str__(self):
         l: list[str] = []
         for i in [self.instrument, self.volume, self.effect, self.effect_parameter]:
             if i:
                 l.append(bytes([i]).hex())
             else:
-                l.append('---')
+                l.append('-')
 
-        return self.tone_to_readable() + " " +' '.join(l)
+        return self.to_readable() + " " +' '.join(l)
 
-    def tone_to_readable(self):
+    def to_readable(self):
         if not self.tone:
             raise ValueError('tone not set.')
 
@@ -54,10 +57,6 @@ class Note:
 
         return f'{notes[note_index].ljust(2, '-')}{octave}'
     
-
-
-
-
 
 class Pattern:
     pattern: dict[str, list[Note]]
@@ -80,3 +79,25 @@ class Pattern:
         data_rows: list[list[bytes]] = []
         for i in range(0, len(data_notes), self.rows):
             data_rows.append(data_notes[i:i + self.rows])
+
+    def from_byte_pattern(self, pattern: bytes):
+        notes: list[Note] = []
+
+        f = BytesIO(pattern)
+        for row in range(self.rows):
+            for note in range(self.channels):
+                t = i = v = e = ep = None
+                byte_1 = int.from_bytes(f.read(1))
+
+                # Handle packing scheme
+                if (byte_1 & 0x80) != 0:
+                    if (byte_1 & 0x01) != 0: t = int.from_bytes(f.read(1))
+                    if (byte_1 & 0x02) != 0: i = int.from_bytes(f.read(1))
+                    if (byte_1 & 0x04) != 0: v = int.from_bytes(f.read(1))
+                    if (byte_1 & 0x08) != 0: e = int.from_bytes(f.read(1))
+                    if (byte_1 & 0x10) != 0: ep = int.from_bytes(f.read(1)) # Useless
+
+                else:
+                    t, i, v, e, ep = [int.from_bytes(f.read(1)) for _ in range(5)]
+
+                notes.append(Note(t, i, v, e, ep))
