@@ -25,4 +25,4 @@ class App(tk.CTk):
         self.readfile = XMReader(self.filepath)
         self.readfile.load_file()
         self.entry.insert(tk.END, str(self.readfile.header))
-        self.entry.update()
+        self.entry.update()        
