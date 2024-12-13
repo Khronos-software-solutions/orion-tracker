@@ -101,7 +101,7 @@ class Note:
             e = '---'
         
 
-        return " {} {}{} {} ".format(self.to_readable(), i, v, e)
+        return "{} {}{} {}".format(self.to_readable(), i, v, e)
 
     def to_readable(self):
         if self.tone:
@@ -133,7 +133,6 @@ class Pattern:
             data_rows.append(data_notes[i:i + self.rows])
 
     def from_byte_pattern(self, pattern: bytes):
-        print(range(self.channels))
         f = BytesIO(pattern)
         for row in range(self.rows):
             for note in range(self.channels):
@@ -153,5 +152,5 @@ class Pattern:
 
                 self.pattern[f'ch_{note+1}'][row] = Note(t, i, v, e, ep)
 
-                print(self.pattern[f'ch_{note+1}'][row], end='|')
+                print(self.pattern[f'ch_{note+1}'][row], end=' | ')
             print()
