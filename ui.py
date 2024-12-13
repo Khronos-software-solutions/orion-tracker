@@ -1,28 +1,58 @@
-import customtkinter as tk
-import tkinter.filedialog as fd
-
+import sys
 from extended_module import XMReader
+from module import Pattern
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QFont
+from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QScrollArea, QVBoxLayout, QHBoxLayout, QGridLayout, QLineEdit, QSizePolicy
 
-class App(tk.CTk):
-    filepath: str
-    def __init__(self):
+class Main(QMainWindow):
+    def __init__(self, data):
         super().__init__()
+        self.data = data
+        self.initUI()
 
-        self.title('Orion Tracker')
-        self.geometry('300x200')
-        # self.menu = tk.CTkOptionMenu(self)
-        # self.menu_file = tk.CTkOptionMenu(self.menu)
-        # self.menu_file.add_command(label='Open', command=self.openFile)
-        # self.menu.add_cascade(menu=self.menu_file, label='File')
-        self.filebutton = tk.CTkButton(self, text="Open file", command=self.openFile)
-        self.entry = tk.CTkTextbox(self)
-        self.filebutton.grid(row=0,column=0,padx=20,pady=20)
-        self.entry.grid(row=1,column=0,padx=20,pady=20,sticky='ew', columnspan=2)
-        # self['menu'] = self.menu
+    def initUI(self):
+        self.vbox = QVBoxLayout()  
+        scroll = QScrollArea()
+        # Create a grid layout
+        grid = QGridLayout()
 
-    def openFile(self):
-        self.filepath = fd.askopenfilename(filetypes=[('Extended Module file','*.xm'), ('Impulse Tracker file', '*.it')])
-        self.readfile = XMReader(self.filepath)
-        self.readfile.load_file()
-        self.entry.insert(tk.END, str(self.readfile.header))
-        self.entry.update()        
+        # Define the table data
+
+        # Add the data to the grid layout
+        for row_idx, row in enumerate(self.data):
+            for col_idx, item in enumerate(row):
+                label = QLineEdit(str(item))
+                label.setFont(QFont("Courier New", 10))
+                label.setContentsMargins(0, 0, 0, 0)
+                label.setTextMargins(0, 0, 0, 0)
+                label.setStyleSheet("border: 1px solid black; padding: 2px;")
+                grid.addWidget(label, col_idx, row_idx)
+
+        # Set the grid layout to the main layout
+
+        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        scroll.setWidgetResizable(True)
+        scroll.setLayout(grid)
+        scroll.setContentsMargins(0,0,0,0)
+        self.vbox.addWidget(scroll)
+        wid = QWidget()
+        wid.setLayout(self.vbox)
+        self.setCentralWidget(wid)
+        
+        self.setWindowTitle('Orion tracker')
+        self.show()
+
+if __name__ == '__main__':
+    mod = XMReader('./amblight.xm')
+    mod.load_file()
+    pattern = Pattern(mod.header['channel_number'], mod.patterns[0]['row_number'])
+    pattern.from_byte_pattern(mod.patterns[0]['data'])
+    patterns = []
+    for i in pattern.pattern:
+        patterns.append(pattern.pattern[i])
+
+    app = QApplication(sys.argv)
+    ex = Main(patterns)
+    sys.exit(app.exec_())

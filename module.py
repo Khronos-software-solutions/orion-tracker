@@ -108,7 +108,7 @@ class Note:
             notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
             octave = (self.tone - 1) // 12 + 1
             note_index = (self.tone - 1) % 12
-            return f'{notes[note_index].ljust(2, '-')}{octave}'
+            return f'{notes[note_index].ljust(2, "-")}{octave}'
         return '---'
     
 
