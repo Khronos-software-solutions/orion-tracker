@@ -1,46 +1,30 @@
 import sys
 from extended_module import XMReader
 from module import Pattern
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QScrollArea, QVBoxLayout, QHBoxLayout, QGridLayout, QLineEdit, QSizePolicy
+from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QScrollArea, QVBoxLayout, QHBoxLayout, QGridLayout, QLineEdit, QSizePolicy, QSlider, QPushButton, QLabel
 
 class Main(QMainWindow):
     def __init__(self, data):
         super().__init__()
         self.data = data
+        self.setWindowTitle('OrionTracker')
+        self.setGeometry(400, 800, 700, 500)
         self.initUI()
+        self.is_playing = False
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.update_playback)
 
     def initUI(self):
-        self.vbox = QVBoxLayout()  
-        scroll = QScrollArea()
-        # Create a grid layout
-        grid = QGridLayout()
+        central_widget = QWidget(self)
+        self.setCentralWidget(central_widget)
+        layout = QVBoxLayout()
+        self.play_button = QPushButton('Play', self)
+        self.play_button.clicked.connect()
 
-        # Define the table data
-
-        # Add the data to the grid layout
-        for row_idx, row in enumerate(self.data):
-            for col_idx, item in enumerate(row):
-                label = QLineEdit(str(item))
-                label.setFont(QFont("Courier New", 10))
-                label.resize(25, 15)
-                label.setStyleSheet("border: 1px solid black; padding: 2px;")
-                grid.addWidget(label, col_idx, row_idx)
-
-        # Set the grid layout to the main layout
-
-        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        scroll.setWidgetResizable(True)
-        scroll.setLayout(grid)
-        scroll.setContentsMargins(0,0,0,0)
-        self.vbox.addWidget(scroll)
-        wid = QWidget()
-        wid.setLayout(self.vbox)
-        self.setCentralWidget(wid)
-        self.setWindowTitle('Orion tracker')
-        self.show()
+            
+        
 
 if __name__ == '__main__':
     mod = XMReader('./amblight.xm')
