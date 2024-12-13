@@ -24,8 +24,7 @@ class Main(QMainWindow):
             for col_idx, item in enumerate(row):
                 label = QLineEdit(str(item))
                 label.setFont(QFont("Courier New", 10))
-                label.setContentsMargins(0, 0, 0, 0)
-                label.setTextMargins(0, 0, 0, 0)
+                label.resize(25, 15)
                 label.setStyleSheet("border: 1px solid black; padding: 2px;")
                 grid.addWidget(label, col_idx, row_idx)
 
@@ -40,7 +39,6 @@ class Main(QMainWindow):
         wid = QWidget()
         wid.setLayout(self.vbox)
         self.setCentralWidget(wid)
-        
         self.setWindowTitle('Orion tracker')
         self.show()
 
