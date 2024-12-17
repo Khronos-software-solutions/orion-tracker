@@ -11,7 +11,10 @@ class Volume:
 
         high_ord, low_ord = data >> 4, data & 0x0F
 
-        if 0x1 <= high_ord < 0x5:
+        if high_ord < 0x1:
+            self.volume_type = " "
+            self.volume = 0
+        elif 0x1 <= high_ord < 0x5:
             self.volume_type = 'V'
             self.volume = data - 0x10
         elif 0x6 <= high_ord < 0x7:
@@ -44,14 +47,15 @@ class Volume:
         elif 0xF <= high_ord:
             self.volume_type = 'G'
             self.volume = low_ord
-    
+
     def __str__(self):
         return "{}{:02d}".format(self.volume_type.lower(), self.volume)
     
 class Effect:
     effect_type: str
     parameter: int
-    def __init__(self, effect, parameter):
+    def __init__(self, effect: bytes, parameter: bytes):
+        self.parameter = int.from_bytes(parameter)
         pass
 
 class Note:
@@ -96,7 +100,7 @@ class Note:
         else:
             v = ' --'
         if self.effect:
-            e = hex(self.effect)
+            e = hex(self.effect)[2:].ljust(3,'-')
         else:
             e = '---'
         
@@ -141,14 +145,20 @@ class Pattern:
 
                 # Handle packing scheme
                 if (byte_1 & 0x80) != 0:
-                    if (byte_1 & 0x01) != 0: t = int.from_bytes(f.read(1))
-                    if (byte_1 & 0x02) != 0: i = int.from_bytes(f.read(1))
-                    if (byte_1 & 0x04) != 0: v = int.from_bytes(f.read(1))
-                    if (byte_1 & 0x08) != 0: e = int.from_bytes(f.read(1))
-                    if (byte_1 & 0x10) != 0: ep = int.from_bytes(f.read(1)) # Useless
+                    if (byte_1 & 0x01) != 0:
+                        t = int.from_bytes(f.read(1))
+                    if (byte_1 & 0x02) != 0:
+                        i = int.from_bytes(f.read(1))
+                    if (byte_1 & 0x04) != 0:
+                        v = int.from_bytes(f.read(1))
+                    if (byte_1 & 0x08) != 0:
+                        e = int.from_bytes(f.read(1))
+                    if (byte_1 & 0x10) != 0:
+                        ep = int.from_bytes(f.read(1))
 
                 else:
-                    t, i, v, e, ep = [int.from_bytes(f.read(1)) for _ in range(5)]
+                    t = byte_1
+                    i, v, e, ep = [int.from_bytes(f.read(1)) for _ in range(4)]
 
                 self.pattern[f'ch_{note+1}'][row] = Note(t, i, v, e, ep)
 
