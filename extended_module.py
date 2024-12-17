@@ -81,8 +81,8 @@ class XMReader:
             instr_name = unpack('<22s', f.read(22))[0].decode('CP437') # Decode using cp437 for regional text compatibility 
             instr_type = f.read(1) # Almost always \x00, doesn't mean anything
             num_samples = unpack('<H', f.read(2))[0]
-            samples: list[dict[str, Any]] = []
-            sample_header: dict[str, Any] = {}
+            samples: list[dict[str, int | bytes | bool]] = []
+            sample_header: list[dict[str, int | bytes]] = []
 
             if num_samples != 0:
                 # Samples are stored like this:
@@ -117,22 +117,22 @@ class XMReader:
                     vibrato_rate = unpack('<B', f.read(1))[0]
                     volume_fadeout = unpack('<H', f.read(2))[0]
 
-                    sample_header.update({
-                        'index': i,
+                    sample_header.append({
+                        'id': i,
                         'header_size': sample_header_size,
                         'keymap': keymap,
                         'volume_envelope': volume_envelope,
-                        'panning_envelope': panning_envelope,
                         'num_volume_points': num_volume_points,
-                        'num_panning_points': num_panning_points,
+                        'volume_type' : volume_type,
                         'volume_sus_point': volume_sus_point,
                         'volume_loop_start': volume_loop_start,
                         'volume_loop_end': volume_loop_end,
+                        'panning_envelope': panning_envelope,
+                        'num_panning_points': num_panning_points,
+                        'panning_type' : panning_type,
                         'panning_sus_point': panning_sus_point,
                         'panning_loop_start': panning_loop_start,
                         'panning_loop_end': panning_loop_end,
-                        'volume_type' : volume_type,
-                        'panning_type' : panning_type,
                         'vibrato_type' : vibrato_type,
                         'vibrato_sweep' : vibrato_sweep,
                         'vibrato_depth' : vibrato_depth,

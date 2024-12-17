@@ -4,7 +4,7 @@ import pygame.mixer as mixer
 import wave
 
 from extended_module import XMReader
-from module import Pattern
+from module_data import Pattern
 
 
 if __name__ == "__main__":

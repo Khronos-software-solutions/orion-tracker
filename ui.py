@@ -1,7 +1,7 @@
 from tkinter import Label, Menu, Tk, Button, Frame
 import tkinter.filedialog as fd
+from controller import Controller
 from frame import ScrollableFrame
-
 
 class TkTable(Frame):
     contents: list[list[Label]] = [[]]
@@ -19,7 +19,7 @@ class TkTable(Frame):
 
 class App(Tk):
     openedfile: str
-    def __init__(self):
+    def __init__(self, controller: Controller):
         super().__init__()
         self.geometry('800x600')
         self.menu = Menu(self)

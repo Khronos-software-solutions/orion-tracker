@@ -1,8 +1,58 @@
-from io import BytesIO
+from typing import Any
+import wave
 
+from io import BytesIO
+from struct import unpack
+
+class SampleData:
+    def __init__(self, data: bytes, length: int, name: str, bit_depth: int = 1) -> None:
+        # bit depth 1 = 8 bits
+        #           2 = 16 bits
+
+        # bit_depth = (int.from_bytes(s['type']) >> 4) & 1
+
+        self.length = length
+        old: int = 0
+        real_sample = b''
+        d = BytesIO(data)
+        print('working...')
+
+        for i in range(length):
+            old += unpack('<b', d.read(1))[0]
+            real_sample += old.to_bytes(2, signed=True)
+
+        if bit_depth == 0:
+            bit_depth = 1
+        else:
+            bit_depth = 2
+        
+        self.data = real_sample
+
+    def save_as_file(self, filename: str) -> None:
+        with wave.open(filename, 'wb') as f:
+            f.setparams((1, 2, 8363, 0, 'NONE', 'NONE'))
+            f.writeframes(self.data)
+            
 class Sample:
-    def __init__(self, data: bytes | None = None, length: int | None = None, name: str | None = None, ADPCM: bool = False):
-        pass
+    volume_data: dict[str, list[int] | int]
+    panning_data: dict[str, list[int] | int]
+    vibrato_data: dict[str, int]
+    def __init__(
+        self, 
+        header_data: dict[str, Any],
+        ):
+        self.name = name
+        self.id = id
+        self.keymap = keymap
+        self.volume_data['env_points'] = []
+        data = BytesIO(volume_data[0])
+        for p in range(volume_data[1]):
+            self.volume_data['env_points'].append(unpack('<B', data.read(1))[0])
+        self.volume_data.update({
+            ''
+        })
+        
+        self.fadeout = fadeout
     
 class Volume:
     volume_type: str
@@ -141,8 +191,8 @@ class Pattern:
         for row in range(self.rows):
             for note in range(self.channels):
                 t = i = v = e = ep = None
-                byte_1 = int.from_bytes(f.read(1))
-
+                byte_1 = int.from_bytes(f.read(1)) # Read first byte to detect packing scheme
+                # If MSB is set, packing is used
                 # Handle packing scheme
                 if (byte_1 & 0x80) != 0:
                     if (byte_1 & 0x01) != 0:
@@ -157,10 +207,11 @@ class Pattern:
                         ep = int.from_bytes(f.read(1))
 
                 else:
-                    t = byte_1
+                    t = byte_1 # If MSB is not set, byte 1 is always tone
                     i, v, e, ep = [int.from_bytes(f.read(1)) for _ in range(4)]
 
                 self.pattern[f'ch_{note+1}'][row] = Note(t, i, v, e, ep)
 
-                print(self.pattern[f'ch_{note+1}'][row], end=' | ')
-            print()
+class Instrument:
+
+        

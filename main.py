@@ -1,7 +1,7 @@
 import sys
 
 import extended_module
-from module import Pattern
+from module_data import Pattern
 from ui import App
 
 reader = extended_module.XMReader('./amblight.xm')
