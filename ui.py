@@ -1,6 +1,5 @@
 from tkinter import Label, Menu, Tk, Button, Frame, Scale
 import tkinter.filedialog as fd
-from controller import Controller
 from frame import ScrollableFrame
 
 class TkTable(Frame):
@@ -19,7 +18,7 @@ class TkTable(Frame):
 
 class App(Tk):
     openedfile: str
-    def __init__(self, controller: Controller):
+    def __init__(self):
         super().__init__()
         self.geometry('800x600')
         self.menu = Menu(self)
@@ -41,11 +40,16 @@ class App(Tk):
         self.view = ScrollableFrame(self.main_table)
         self.table = TkTable(self.view.inner_frame)
         self.table.testgrid(100, 16)
-        self.main_table.grid(row=1, column=0, sticky='nsew')
+        self.main_table.grid(row=1, column=0, columnspan=2, sticky='nsew')
         self.table.grid(row=0, column=0, sticky='nsew')
         
-        self.volume_slider = Scale(self, from_= 1, to_= 100, orient= 'horizontal')
-
+        volume_frame = Frame(self)
+        volume_frame.grid(row=0, column=0, sticky='ew')
+        self.volume_label = Label(volume_frame, text='Volume')
+        self.volume_label.pack(side='left')
+        self.volume_slider = Scale(volume_frame, from_=0, to_=100, orient='horizontal')
+        self.volume_slider.set(50)
+        self.volume_slider.pack(side='left', fill='x', expand=True)
     
     def open_file(self):
         self.openedfile = fd.askopenfilename(filetypes=[("Extended Module", "*.xm")])
