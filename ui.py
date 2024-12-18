@@ -1,6 +1,7 @@
 from tkinter import Label, Menu, Tk, Button, Frame
 import tkinter.filedialog as fd
-from controller import Controller
+from module_data import Pattern
+from extended_module import XMReader
 from frame import ScrollableFrame
 
 class TkTable(Frame):
@@ -19,7 +20,7 @@ class TkTable(Frame):
 
 class App(Tk):
     openedfile: str
-    def __init__(self, controller: Controller):
+    def __init__(self):
         super().__init__()
         self.geometry('800x600')
         self.menu = Menu(self)
@@ -49,7 +50,9 @@ class App(Tk):
         self.load()
 
     def load(self):
+        self.reader = XMReader(self.openedfile)
         print(f'loaded {self.openedfile}')
+        
         pass
 
     def play(self):
@@ -59,6 +62,7 @@ class App(Tk):
     def stop(self):
         self.button['text'] = 'Play'
         self.button['command'] = self.play
+
 
 if __name__ == "__main__":
     app = App()

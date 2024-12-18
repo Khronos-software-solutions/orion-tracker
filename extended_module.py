@@ -175,6 +175,7 @@ class XMReader:
                 f.read(instr_size - 29) # If there are no samples, and the instrument size is more than 29, the data is padded with zeroes.
 
             self.instruments.append({
+                'id': i,
                 'name': instr_name,
                 'type': instr_type,
                 'samples': samples

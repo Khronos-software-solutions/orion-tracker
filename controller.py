@@ -7,6 +7,3 @@ class Controller:
     def __init__(self):
         self.app = App(self)
         self.module = Module()
-        
-    def loadfile(self, filename):
-        pass
