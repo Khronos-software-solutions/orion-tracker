@@ -1,4 +1,4 @@
-from tkinter import Label, Menu, Tk, Button, Frame
+from tkinter import Label, Menu, Tk, Button, Frame, Scale
 import tkinter.filedialog as fd
 from controller import Controller
 from frame import ScrollableFrame
@@ -44,6 +44,9 @@ class App(Tk):
         self.main_table.grid(row=1, column=0, sticky='nsew')
         self.table.grid(row=0, column=0, sticky='nsew')
         
+        self.volume_slider = Scale(self, from_= 1, to_= 100, orient= 'horizontal')
+
+    
     def open_file(self):
         self.openedfile = fd.askopenfilename(filetypes=[("Extended Module", "*.xm")])
         self.load()
