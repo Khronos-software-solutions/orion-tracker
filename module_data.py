@@ -213,5 +213,4 @@ class Pattern:
                 self.pattern[f'ch_{note+1}'][row] = Note(t, i, v, e, ep)
 
 class Instrument:
-
-        
+    pass
