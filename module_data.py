@@ -6,11 +6,6 @@ from struct import unpack
 
 class SampleData:
     def __init__(self, data: bytes, length: int, name: str, bit_depth: int = 1) -> None:
-        # bit depth 1 = 8 bits
-        #           2 = 16 bits
-
-        # bit_depth = (int.from_bytes(s['type']) >> 4) & 1
-
         self.length = length
         old: int = 0
         real_sample = b''
@@ -179,12 +174,6 @@ class Pattern:
             self.pattern.update({
                 f'ch_{channel+1}': [Note() for _ in range(rows)]
             })
-
-    def from_data(self, data: bytes):
-        data_notes = [data[i:i+5] for i in range(0, len(data), 5)]
-        data_rows: list[list[bytes]] = []
-        for i in range(0, len(data_notes), self.rows):
-            data_rows.append(data_notes[i:i + self.rows])
 
     def from_byte_pattern(self, pattern: bytes):
         f = BytesIO(pattern)

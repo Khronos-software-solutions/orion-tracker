@@ -3,14 +3,18 @@ from struct import unpack
 from typing import Any
 
 class XMReader:
-    def __init__(self, file_path: str):
-        self.file_path = file_path
+    file_path: str
+    def __init__(self, file_path: str | None = None):
+        if file_path:
+            self.file_path = file_path
         self.header: dict[str, Any] = {}
         self.patterns: list[dict[str, Any]] = []
         self.pattern_order: list[int] = []
         self.instruments: list[dict[str, Any]] = []
 
     def load_file(self):
+        if not self.file_path:
+            return
         with open(self.file_path, 'rb') as f:
             self.read_header(f)
             self.read_patterns(f)
@@ -180,8 +184,3 @@ class XMReader:
                 'type': instr_type,
                 'samples': samples
             })
-
-if __name__ == "__main__":
-    xm = XMReader('./amb-nrg.xm')
-    
-    xm.load_file()

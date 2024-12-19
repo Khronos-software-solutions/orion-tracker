@@ -11,6 +11,7 @@ class ScrollableFrame:
 
         self.canvas = tk.Canvas(self.main_frame)
         self.canvas.grid(row=0, column=0, sticky="nsew")
+        self.canvas.bind_all("<MouseWheel>", lambda e: self.canvas.yview_scroll(int(-1*(e.delta/120)), "units"))
 
         self.v_scrollbar = ttk.Scrollbar(self.main_frame, orient=tk.VERTICAL, command=self.canvas.yview)
         self.v_scrollbar.grid(row=0, column=1, sticky="ns")
@@ -28,3 +29,8 @@ class ScrollableFrame:
 
         self.main_frame.grid_rowconfigure(0, weight=1)
         self.main_frame.grid_columnconfigure(0, weight=1)
+
+
+    def update_scrollregion(self):
+        self.inner_frame.update_idletasks()
+        self.canvas.config(scrollregion=self.canvas.bbox("all"))
