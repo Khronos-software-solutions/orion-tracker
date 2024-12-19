@@ -145,12 +145,15 @@ class Note:
         else:
             v = ' --'
         if self.effect:
-            e = hex(self.effect)[2:].ljust(3,'-')
+            e = hex(self.effect)[2:].ljust(1,'-')
         else:
-            e = '---'
-        
+            e = '-'
+        if self.effect_parameter:
+            ep = hex(self.effect_parameter)[2:].ljust(2, '0')
+        else:
+            ep = '--'
 
-        return "{} {}{} {}".format(self.to_readable(), i, v, e)
+        return "{} {}{} {}{}".format(self.to_readable(), i, v, e, ep)
 
     def to_readable(self):
         if self.tone:

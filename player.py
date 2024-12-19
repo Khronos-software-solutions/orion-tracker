@@ -2,11 +2,9 @@ from io import BytesIO
 import struct
 from typing import Any
 import pygame.mixer as mixer
-import threading
 import wave
 
 from extended_module import XMReader
-from module_data import Pattern
 
 def save_samples(r: XMReader):
     instruments: list[list[dict[str, Any]]] = []

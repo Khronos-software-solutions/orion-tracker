@@ -17,16 +17,22 @@ class Controller:
                 for key in i.pattern:
                     self.patterns[index].append(i.pattern[key])
                 index += 1
-            self.app.pattern_selector.indices = self.module.reader.pattern_order
-            self.app.pattern_selector.update_buttons()
-            self.app.view.update_scrollregion()
+            self.app.patterns.pattern_selector.indices = self.module.reader.pattern_order
+            self.app.patterns.pattern_selector.update_buttons()
+            self.app.patterns.view.update_scrollregion()
+            self.app.info.module_info = self.module.reader.header
+            self.app.info.update_info()
             self.app.update()
 
         self.app.load = on_load
 
         def load_pattern(index: int):
-            currentindex = self.app.pattern_selector.indices[index]
-            self.app.table.set_contents(self.patterns[currentindex])
-            self.app.view.update_scrollregion()
+            print(index)
+            print(len(self.app.patterns.pattern_selector.indices))
+            currentindex = self.app.patterns.pattern_selector.indices[index]
+            self.app.patterns.table.set_contents(self.patterns[currentindex])
+            self.app.patterns.view.update_scrollregion()
+        
+        
 
-        self.app.pattern_selector.load_pattern = load_pattern
+        self.app.patterns.pattern_selector.load_pattern = load_pattern
