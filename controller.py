@@ -1,5 +1,5 @@
 from module_data import Note
-from ui import App
+from user_interface import App
 from module_model import Module
 
 class Controller:
