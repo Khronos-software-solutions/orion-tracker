@@ -8,8 +8,7 @@ from frame import ScrollableFrame
 class Table(Frame):
     contents: list[list[Label]] = [[]]
     def __init__(self, master: Tk | Frame):
-        Frame.__init__(self, master)
-        
+        Frame.__init__(self, master)       
     def testgrid(self, height: int, width: int):
         for i in range(0, height):
             self.contents.append([])
@@ -17,7 +16,6 @@ class Table(Frame):
                 self.contents[i].append(Label(self, width=7, text=f'test {i} {j}', borderwidth=1, relief='sunken'))
                 self.contents[i][j]['bg'] = '#eee'
                 self.contents[i][j].grid(row=i, column=j)
-
     def set_contents(self, c: list[list[Note]]):
         self.contents = [[]]
         self.contents[0].append(Label(self, width=3, text=' ', borderwidth=1, relief='raised'))
@@ -108,8 +106,7 @@ class InfoPanel(Frame):
         self.columnconfigure(0, weight=1)
         self.rowconfigure(1, weight=1)
         self.info = Label(self, text='Information')
-        self.info.grid(row=0, column=0, sticky='w')
-        
+        self.info.grid(row=0, column=0, sticky='w')       
         self.headerinfo = Frame(self, relief='sunken', bd=1)
         self.headerinfo.grid(row=1, column=0, sticky='nsew')
 
