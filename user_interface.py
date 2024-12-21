@@ -1,5 +1,5 @@
 import os
-from tkinter import Entry, Label, Menu, Tk, Button, Frame, Canvas, Scrollbar
+from tkinter import Entry, Label, Menu, Tk, Button, Frame, Canvas, Scrollbar, Toplevel
 import tkinter.filedialog as fd
 from tkinter.ttk import Notebook
 
@@ -39,7 +39,6 @@ class PatternSelector(Frame):
             button.destroy()
         self.buttons = []
         for i in enumerate(self.indices):
-            print(i)
             index = i[0]
             self.buttons.append(Button(self.inner_frame, text=str(self.indices[index]), width=4, relief='groove', command=lambda index=index: self.on_pattern_change(index)))
             self.buttons[index].grid(column=index, row=0, sticky='ew')
@@ -104,9 +103,13 @@ class InfoPanel(Frame):
         self.add_info('name', 'Name', 0)
         self.add_info('tracker_name', 'Tracker', 1)
         self.add_info('version', 'Version', 2)
-        self.add_info('channel_number', 'Channels', 3)
-        self.add_info('pattern_number', 'Patterns', 4)
-        self.add_info('instrument_number', 'Instruments', 5)
+        self.add_info('song_length', 'Song Length', 3)
+        self.add_info('song_restart', 'Restart Position', 4)
+        self.add_info('channel_number', 'Channels', 5)
+        self.add_info('pattern_number', 'Patterns', 6)
+        self.add_info('instrument_number', 'Instruments', 7)
+        self.add_info('tempo', 'Tempo', 8)
+        self.add_info('bpm', 'BPM', 9)
 
 class SamplePanel(Frame):
     samplepaths: list[str] = []
@@ -155,7 +158,10 @@ class App(Tk):
         self.filemenu = Menu(self.menu, tearoff=0)
         self.filemenu.add_command(label='Open', command=self.open_file)
         self.filemenu.add_command(label='Quit', command=self.destroy)
+        self.helpmenu = Menu(self.menu, tearoff=0)
+        self.helpmenu.add_command(label='About', command=self.about)
         self.menu.add_cascade(label='File', menu=self.filemenu)
+        self.menu.add_cascade(label='Help', menu=self.helpmenu)
         self.config(menu=self.menu)
 
         self.main = Notebook(self)
@@ -168,6 +174,23 @@ class App(Tk):
         self.main.add(self.info, text='Info')
         self.main.add(self.patterns, text='Patterns')
         self.main.add(self.samples, text='Samples')
+
+    def about(self):
+        t = Toplevel(self)
+        t.title('About')
+        t.geometry('175x155')
+        t.columnconfigure(0, weight=1)
+        f = Frame(t)
+        f['relief'] = 'groove'
+        f['bd'] = 2
+        Label(f, text='Orion Tracker').grid(row=0, column=0, sticky='w')
+        Label(f, text='Version 0.1').grid(row=1, column=0, sticky='w')
+        Label(f, text='Authors: ').grid(row=2, column=0, sticky='w')
+        Label(f, text='  - Ties Heijnis').grid(row=3, column=0, sticky='w')
+        Label(f, text='  - Luuk Kalkman').grid(row=4, column=0, sticky='w')
+        f.grid(row=0, column=0, padx=10, pady=10, sticky='nsew')
+        Button(t, text='Close', command=t.destroy).grid(row=1, column=0)
+        t.mainloop()
 
     def open_file(self):
         self.openedfile = fd.askopenfilename(filetypes=[("Extended Module", "*.xm")])

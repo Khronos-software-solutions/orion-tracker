@@ -29,8 +29,6 @@ class Controller:
         self.app.load = on_load
 
         def load_pattern(index: int):
-            print(index)
-            print(len(self.app.patterns.pattern_selector.indices))
             currentindex = self.app.patterns.pattern_selector.indices[index]
             self.app.patterns.table.set_contents(self.patterns[currentindex])
             self.app.patterns.view.update_scrollregion()
