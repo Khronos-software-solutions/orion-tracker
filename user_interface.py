@@ -1,42 +1,21 @@
+import os
 from tkinter import Entry, Label, Menu, Tk, Button, Frame, Canvas, Scrollbar
 import tkinter.filedialog as fd
 from tkinter.ttk import Notebook
 
-from module_data import Note
-from frame import ScrollableFrame
+from player import play_sample
 
-class Table(Frame):
-    contents: list[list[Label]] = [[]]
-    def __init__(self, master: Tk | Frame):
-        Frame.__init__(self, master)       
-    def testgrid(self, height: int, width: int):
-        for i in range(0, height):
-            self.contents.append([])
-            for j in range(0, width):
-                self.contents[i].append(Label(self, width=7, text=f'test {i} {j}', borderwidth=1, relief='sunken'))
-                self.contents[i][j]['bg'] = '#eee'
-                self.contents[i][j].grid(row=i, column=j)
-    def set_contents(self, c: list[list[Note]]):
-        self.contents = [[]]
-        self.contents[0].append(Label(self, width=3, text=' ', borderwidth=1, relief='raised'))
-        for i in range(len(c[0])):
-            self.contents[0].append(Label(self, width=3, text=f'{str(i)}', borderwidth=1, relief='raised'))
-            self.contents[0][i].grid(row=i, column=0)
-        for i in range(1, len(c)):
-            self.contents.append([])
-            self.contents[i].append(Label(self, width=15, text=f'Channel {str(i)}', borderwidth=1, relief='raised'))
-            self.contents[i][0].grid(row=0, column=i)
-            for j in range(1, len(c[i])):
-                self.contents[i].append(Label(self, width=15, text=f'{str(c[i-1][j-1])}', borderwidth=1, relief='sunken'))
-                self.contents[i][j]['bg'] = '#eee'
-                self.contents[i][j].configure(font=('Courier', 8))
-                self.contents[i][j].grid(row=j, column=i)
-        self.update()
+from table import Table
+from waveform import WaveformDisplay
+from frame import ScrollableFrame
+from selector_box import SelectorBox
+
 
 class PatternSelector(Frame):
     indices: list[int] = []
     buttons: list[Button] = []
-    def __init__(self, master: Tk | Frame, indices: list[int] = []):
+
+    def __init__(self, master: Tk | Frame, indices: list[int]):
         super().__init__(master)
         self.columnconfigure(0, weight=1)
         self.indices = indices
@@ -59,10 +38,12 @@ class PatternSelector(Frame):
         for button in self.buttons:
             button.destroy()
         self.buttons = []
-        for i in range(len(self.indices)):
-            index = i
-            self.buttons.append(Button(self.inner_frame, text=str(self.indices[i]), width=4, relief='groove', command=lambda index=index: self.on_pattern_change(index)))
+        for i in enumerate(self.indices):
+            print(i)
+            index = i[0]
+            self.buttons.append(Button(self.inner_frame, text=str(self.indices[index]), width=4, relief='groove', command=lambda index=index: self.on_pattern_change(index)))
             self.buttons[index].grid(column=index, row=0, sticky='ew')
+
         self.on_pattern_change(0)
         self.update_canvas_height()
 
@@ -70,7 +51,7 @@ class PatternSelector(Frame):
         for i in self.buttons:
             i['relief'] = 'groove'
         self.buttons[index]['relief'] = 'sunken'
-        self.load_pattern(self.indices[index])
+        self.load_pattern(index)
         self.update()
 
     def load_pattern(self, index: int):
@@ -127,8 +108,42 @@ class InfoPanel(Frame):
         self.add_info('pattern_number', 'Patterns', 4)
         self.add_info('instrument_number', 'Instruments', 5)
 
+class SamplePanel(Frame):
+    samplepaths: list[str] = []
+    def __init__(self, master: Tk | Frame):
+        super(SamplePanel, self).__init__(master)
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(2, weight=1)
+        self.playbutton = Button(self, text='Play', command=self.play_sample)
+        self.playbutton.grid(row=0, column=1, sticky='w')
+        self.selector = SelectorBox(self, 0, self.update_graph)
+        self.graph = WaveformDisplay(self)
+        self.graph['bd'] = 1
+        self.graph['relief'] = 'sunken'
+        self.selector.grid(row=0, column=0, sticky='w')
+        self.graph.grid(row=1, column=0, columnspan=2, sticky='nsew')
+
+    def load_samples(self, filepath: str):
+        if not os.path.exists(filepath) or not os.path.isdir(filepath):
+            return
+        self.samplepaths = [os.path.join(filepath, i) for i in os.listdir(filepath) if i.endswith('.wav')]
+        self.selector.options = len(self.samplepaths)
+        self.selector.selected = 0
+        self.selector.entry.delete(0, 'end')
+        self.selector.entry.insert(0, '0')
+        self.selector.update()
+        self.update_graph()
+
+    def update_graph(self):
+        self.graph.load_waveform(self.samplepaths[self.selector.selected])
+
+    def play_sample(self):
+        play_sample(self.samplepaths[self.selector.selected]) if self.samplepaths else None
+
+
 
 class App(Tk):
+    openedfile: str
     def __init__(self):
         super().__init__()
         self.title('XM Module Viewer')
@@ -148,9 +163,11 @@ class App(Tk):
 
         self.info = InfoPanel(self)
         self.patterns = PatternEditor(self)
+        self.samples = SamplePanel(self)
 
         self.main.add(self.info, text='Info')
         self.main.add(self.patterns, text='Patterns')
+        self.main.add(self.samples, text='Samples')
 
     def open_file(self):
         self.openedfile = fd.askopenfilename(filetypes=[("Extended Module", "*.xm")])

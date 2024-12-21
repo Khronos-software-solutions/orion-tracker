@@ -22,6 +22,8 @@ class Controller:
             self.app.patterns.view.update_scrollregion()
             self.app.info.module_info = self.module.reader.header
             self.app.info.update_info()
+
+            self.app.samples.load_samples('./samples')
             self.app.update()
 
         self.app.load = on_load
@@ -32,7 +34,5 @@ class Controller:
             currentindex = self.app.patterns.pattern_selector.indices[index]
             self.app.patterns.table.set_contents(self.patterns[currentindex])
             self.app.patterns.view.update_scrollregion()
-        
-        
 
         self.app.patterns.pattern_selector.load_pattern = load_pattern

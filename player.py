@@ -1,12 +1,18 @@
-from io import BytesIO
+import os
 import struct
-from typing import Any
-import pygame.mixer as mixer
+import shutil
 import wave
+
+from typing import Any
+from io import BytesIO
+
+import pygame.mixer as mixer
 
 from extended_module import XMReader
 
 def save_samples(r: XMReader):
+    shutil.rmtree('./samples', ignore_errors=True)
+    os.makedirs('./samples', exist_ok=True)
     instruments: list[list[dict[str, Any]]] = []
     c = 0
     for i in r.instruments:
@@ -29,7 +35,7 @@ def save_samples(r: XMReader):
             else:
                 bit_depth = 2
 
-            with wave.open(f'./temp/samples/{c}_{s['index']}_{s['relative_note']}.wav', 'wb') as f:
+            with wave.open(f'./samples/{c}_{s["index"]}_{s["relative_note"]}.wav', 'wb') as f:
                 f.setparams((1, 2, 8363, 0, 'NONE', 'NONE'))
                 f.writeframes(real_sample)
 
@@ -37,8 +43,17 @@ def save_samples(r: XMReader):
                 'id': c,
                 'index': s['index'],
                 'name': s['name'],
-                'path': f'./temp/samples/{c}_{s['index']}_{s['relative_note']}.wav',
+                'path': f'./temp/samples/{c}_{s["index"]}_{s["relative_note"]}.wav',
             })
         instruments.append(l)
         c += 1
-    return instruments
+
+def play_sample(filepath: str):
+    mixer.init()
+    mixer.music.load(filepath)
+    mixer.music.play()
+
+if __name__ == '__main__':
+    r = XMReader('./amb-nrg.xm')
+    r.load_file()
+    save_samples(r)

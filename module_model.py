@@ -1,5 +1,6 @@
 from extended_module import XMReader
 from module_data import Pattern
+from player import save_samples
 
 class Module:
     reader: XMReader = XMReader()
@@ -14,3 +15,5 @@ class Module:
             p = Pattern(self.reader.header['channel_number'], i['row_number'])
             p.from_byte_pattern(i['data'])
             self.patterns.append(p)
+        save_samples(self.reader)
+
